@@ -16,7 +16,7 @@ fi
 
 # and this...
 case "$OSTYPE" in
-  linux*)   goto LINUX;; 
+  linux*)   echo "LINUX" ;;
   darwin*)  echo "OSX" ;; 
   win*)     echo "Windows" ;;
   msys)     echo "MINGW" ;;
@@ -25,6 +25,5 @@ case "$OSTYPE" in
   solaris*) echo "SOLARIS" ;;
   *)        echo "unknown: $OSTYPE" ;;
 esac
-:LINUX:
-echo "LINUX" ;;
+
 
