@@ -1,0 +1,100 @@
+myls0()
+{
+  ls -l -A -F -G -g --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total |
+    gawk '{printf("%s\t%s\t%s\t%s\t%\047.f\n", substr($0,41,9999), $4, $5, $6, $3) }' | column -t -s $'\t' -o ' '
+}
+  
+myls1()
+{
+  #echo $*
+  if [ "$*" == "" ] ; then
+    ls -l -A -F -G -g --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total |
+       gawk '{printf("%s\t %s\t %s %s\t% \047.f\n", substr($0,index($0,$7)), $4, $5, $6, $3) }' | column -t -s $'\t' -o ' '
+  else
+    ls "$*" -l -A -F -G -g --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total |
+       gawk '{printf("%s\t %s\t %s %s\t% \047.f\n", substr($0,index($0,$7)), $4, $5, $6, $3) }' | column -t -s $'\t' -o ' '
+  fi
+}
+
+myls2()
+{
+  #this doesn't work because of the hardcoded indexes in substr
+  if [ "$*" == "" ] ; then
+    ls -l -A -F -G -g --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total | 
+      gawk '{date=$4 " " $5 " " $6; size=$3; filename=substr($0,45,9999); printf("%s \t %\047d \t %s\n", date, size, filename) }' | column -t -s $'\t' -o ' '
+  else
+    ls "$*" -l -A -F -G -g --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total | 
+      gawk '{date=$4 " " $5 " " $6; size=$3; filename=substr($0,45,9999); printf("%s \t %\047d \t %s\n", date, size, filename) }' | column -t -s $'\t' -o ' '
+  fi
+}
+
+attrib()
+{
+  ls -l -A -F -G -g --group-directories-first | awk '{printf("%s\t%s\n",$1,$7);}'
+}
+
+#rindex()
+#{
+#   echo $1 | gawk 'BEGIN{FS=""}{ for(i=1;i<=NF;i++){ if($i==" "){ p=i } }}END{  print p }'
+#}
+
+#gawk function 
+#function rindex(str,c)
+#{
+#  return match(str,"\\" c "[^" c "]*$")? RSTART : 0
+#}
+#{
+#  print rindex($0, "|")
+#}'
+
+my_ls_debug()
+{
+  ls -l -A -F -G -g --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total |
+     gawk '{
+	    date=$4 " " $5 " " $6; 
+	    size=$3; 
+	    indx=index($0,$7); 
+	    filename=substr($0,indx,9999); 
+	    printf("indx=%d date=%s \t size=%\047d \t filename=%s\n", indx, date, size, filename) 
+	  }'
+}
+
+# got this here:
+# http://stackoverflow.com/questions/13391400/in-awk-is-it-possible-to-specify-ranges-of-fields
+myls3()
+{
+	gawk '
+     function subflds(start, end,    f) {
+     f="([^" FS "]+" FS ")"
+	  return gensub( "(" f "{" start-1 "})(" f "{" end-start+1 "}).*","\\3",1)
+   }
+   { print subflds(7,8) }' file
+}
+
+myls4()
+{
+  if [ "$*" == "" ] ; then
+    ls -lAFGg --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total | 
+    gawk -v ORS=' ' '{
+       date=$4 " " $5 " " $6;
+       size=$3;
+       fn=""; 
+	    dir="     ";
+	    if ( $1 ~ /^d/ ) {
+	       dir="<DIR>"; size="";
+	    }
+		 ss = sprintf("%\047d",size);
+		 
+	    #concatenate fields 7->END for the filename in case it has spaces
+       for(i=7;i<=NF;i++) fn=fn" "$i;
+       #printf("date=%s\tdir=%s\tsize=%s\tfn=%s\n",date,dir,size,fn);
+	    if (size == "")
+          printf("%s\t%s\t\t%s\n",date,dir,fn);
+	    else
+          printf("%s\t%s\t%10s\t%s\n",date,dir,ss,fn);
+    }' | column -t -s $'\t' -o ' '
+  else
+    ls $* -lAFGg --group-directories-first --time-style="+%m/%d/%Y  %I:%M %p" | grep -v ^total
+  fi
+}
+
